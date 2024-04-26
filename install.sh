@@ -7,9 +7,6 @@ plain='\033[0m'
 
 cur_dir=$(pwd)
 
-# check root
-[[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用root用户运行此脚本！\n" && exit 1
-
 # check os
 if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -73,21 +70,21 @@ fi
 
 install_base() {
     if [[ x"${release}" == x"centos" ]]; then
-        yum install wget curl tar jq -y
+        sudo yum install wget curl tar jq -y
     else
-        apt install wget curl tar jq -y
+        sudo apt install wget curl tar jq -y
     fi
 }
 
 #This function will be called when user installed x-ui out of security
 config_after_install() {
-    /usr/local/x-ui/x-ui setting -username admin -password admin
-    /usr/local/x-ui/x-ui setting -port 54321
-    /usr/local/x-ui/x-ui socks -install
+    sudo /usr/local/x-ui/x-ui setting -username admin -password admin
+    sudo /usr/local/x-ui/x-ui setting -port 54321
+    sudo /usr/local/x-ui/x-ui socks -install
 }
 
 install_x-ui() {
-    systemctl stop x-ui
+    sudo systemctl stop x-ui
     cd /usr/local/
 
     if [ $# == 0 ]; then
@@ -97,7 +94,7 @@ install_x-ui() {
             exit 1
         fi
         echo -e "检测到 x-ui 最新版本：${last_version}，开始安装"
-        wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz
+        sudo wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 x-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             exit 1
@@ -106,7 +103,7 @@ install_x-ui() {
         last_version=$1
         url="https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 x-ui v$1"
-        wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz ${url}
+        sudo wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 x-ui v$1 失败，请确保此版本存在${plain}"
             exit 1
@@ -114,41 +111,23 @@ install_x-ui() {
     fi
 
     if [[ -e /usr/local/x-ui/ ]]; then
-        rm /usr/local/x-ui/ -rf
+        sudo rm /usr/local/x-ui/ -rf
     fi
 
-    tar zxvf x-ui-linux-${arch}.tar.gz
-    rm x-ui-linux-${arch}.tar.gz -f
+    sudo tar zxvf x-ui-linux-${arch}.tar.gz
+    sudo rm x-ui-linux-${arch}.tar.gz -f
     cd x-ui
-    chmod +x x-ui bin/xray-linux-${arch}
-    cp -f x-ui.service /etc/systemd/system/
-    wget --no-check-certificate -O /usr/bin/x-ui https://raw.githubusercontent.com/FranzKafkaYu/x-ui/main/x-ui.sh
-    chmod +x /usr/local/x-ui/x-ui.sh
-    chmod +x /usr/bin/x-ui
+    sudo chmod +x x-ui bin/xray-linux-${arch}
+    sudo cp -f x-ui.service /etc/systemd/system/
+    sudo wget --no-check-certificate -O /usr/bin/x-ui https://raw.githubusercontent.com/FranzKafkaYu/x-ui/main/x-ui.sh
+    sudo chmod +x /usr/local/x-ui/x-ui.sh
+    sudo chmod +x /usr/bin/x-ui
     config_after_install
-    systemctl daemon-reload
-    systemctl enable x-ui
-    systemctl start x-ui
+    sudo systemctl daemon-reload
+    sudo systemctl enable x-ui
+    sudo systemctl start x-ui
     echo -e "${green}x-ui v${last_version}${plain} 安装完成，面板已启动，"
     echo -e ""
     echo -e "x-ui 管理脚本使用方法: "
     echo -e "----------------------------------------------"
-    echo -e "x-ui              - 显示管理菜单 (功能更多)"
-    echo -e "x-ui start        - 启动 x-ui 面板"
-    echo -e "x-ui stop         - 停止 x-ui 面板"
-    echo -e "x-ui restart      - 重启 x-ui 面板"
-    echo -e "x-ui status       - 查看 x-ui 状态"
-    echo -e "x-ui enable       - 设置 x-ui 开机自启"
-    echo -e "x-ui disable      - 取消 x-ui 开机自启"
-    echo -e "x-ui log          - 查看 x-ui 日志"
-    echo -e "x-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 x-ui"
-    echo -e "x-ui update       - 更新 x-ui 面板"
-    echo -e "x-ui install      - 安装 x-ui 面板"
-    echo -e "x-ui uninstall    - 卸载 x-ui 面板"
-    echo -e "x-ui geo          - 更新 geo  数据"
-    echo -e "----------------------------------------------"
-}
-
-echo -e "${green}开始安装${plain}"
-install_base
-install_x-ui $1
+    echo -e "x-ui             
