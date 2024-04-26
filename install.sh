@@ -83,6 +83,7 @@ install_base() {
 config_after_install() {
     /usr/local/x-ui/x-ui setting -username admin -password admin
     /usr/local/x-ui/x-ui setting -port 54321
+    /usr/local/x-ui/x-ui socks -install
 }
 
 install_x-ui() {
