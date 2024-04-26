@@ -81,39 +81,11 @@ install_base() {
 
 #This function will be called when user installed x-ui out of sercurity
 config_after_install() {
-    echo -e "${yellow}出于安全考虑，安装/更新完成后需要强制修改端口与账户密码${plain}"
-    read -p "确认是否继续,如选择n则跳过本次端口与账户密码设定[y/n]": config_confirm
-    if [[ x"${config_confirm}" == x"y" || x"${config_confirm}" == x"Y" ]]; then
-        read -p "请设置您的账户名:" config_account
-        echo -e "${yellow}您的账户名将设定为:${config_account}${plain}"
-        read -p "请设置您的账户密码:" config_password
-        echo -e "${yellow}您的账户密码将设定为:${config_password}${plain}"
-        read -p "请设置面板访问端口:" config_port
-        echo -e "${yellow}您的面板访问端口将设定为:${config_port}${plain}"
-        echo -e "${yellow}确认设定,设定中${plain}"
-        /usr/local/x-ui/x-ui setting -username ${config_account} -password ${config_password}
-        echo -e "${yellow}账户密码设定完成${plain}"
-        /usr/local/x-ui/x-ui setting -port ${config_port}
-        echo -e "${yellow}面板端口设定完成${plain}"
-    else
-        echo -e "${red}已取消设定...${plain}"
-        if [[ ! -f "/etc/x-ui/x-ui.db" ]]; then
-            local usernameTemp=$(head -c 6 /dev/urandom | base64)
-            local passwordTemp=$(head -c 6 /dev/urandom | base64)
-            local portTemp=$(echo $RANDOM)
-            /usr/local/x-ui/x-ui setting -username ${usernameTemp} -password ${passwordTemp}
-            /usr/local/x-ui/x-ui setting -port ${portTemp}
-            echo -e "检测到您属于全新安装,出于安全考虑已自动为您生成随机用户与端口:"
-            echo -e "###############################################"
-            echo -e "${green}面板登录用户名:${usernameTemp}${plain}"
-            echo -e "${green}面板登录用户密码:${passwordTemp}${plain}"
-            echo -e "${red}面板登录端口:${portTemp}${plain}"
-            echo -e "###############################################"
-            echo -e "${red}如您遗忘了面板登录相关信息,可在安装完成后输入x-ui,输入选项7查看面板登录信息${plain}"
-        else
-            echo -e "${red}当前属于版本升级,保留之前设置项,登录方式保持不变,可输入x-ui后键入数字7查看面板登录信息${plain}"
-        fi
-    fi
+    config_account="admin"
+    config_password="admin"
+    config_port="54321"
+    /usr/local/x-ui/x-ui setting -username ${config_account} -password ${config_password}
+    /usr/local/x-ui/x-ui setting -port ${config_port}
 }
 
 install_x-ui() {
@@ -156,12 +128,6 @@ install_x-ui() {
     chmod +x /usr/local/x-ui/x-ui.sh
     chmod +x /usr/bin/x-ui
     config_after_install
-    #echo -e "如果是全新安装，默认网页端口为 ${green}54321${plain}，用户名和密码默认都是 ${green}admin${plain}"
-    #echo -e "请自行确保此端口没有被其他程序占用，${yellow}并且确保 54321 端口已放行${plain}"
-    #    echo -e "若想将 54321 修改为其它端口，输入 x-ui 命令进行修改，同样也要确保你修改的端口也是放行的"
-    #echo -e ""
-    #echo -e "如果是更新面板，则按你之前的方式访问面板"
-    #echo -e ""
     systemctl daemon-reload
     systemctl enable x-ui
     systemctl start x-ui
